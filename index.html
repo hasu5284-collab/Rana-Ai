@@ -1,0 +1,126 @@
+
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rana AI</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;background:#07111f;color:white;
+ font-family:Arial,sans-serif;
+}
+header{
+ padding:22px;background:#101f35;
+ display:flex;align-items:center;gap:12px;
+ border-bottom:1px solid #263b58;
+}
+.logo{
+ width:45px;height:45px;border-radius:14px;
+ background:linear-gradient(135deg,#00d4ff,#7855ff);
+ display:grid;place-items:center;font-size:23px;
+}
+header h2{margin:0;color:#45d9ff}
+header p{margin:4px 0 0;color:#a5b5ca;font-size:12px}
+main{padding:20px;max-width:650px;margin:auto}
+.welcome{
+ margin-top:35px;text-align:center;
+}
+.welcome h1{font-size:30px;color:#49d9ff}
+.welcome p{color:#b6c6dc;line-height:1.7}
+.chat{
+ margin-top:25px;min-height:280px;
+}
+.message{
+ padding:13px 16px;margin:12px 0;
+ border-radius:15px;line-height:1.6;
+ max-width:90%;overflow-wrap:anywhere;
+}
+.bot{background:#142b45}
+.user{background:#214c78;margin-left:auto}
+.controls{
+ position:fixed;bottom:0;left:0;right:0;
+ padding:15px;background:#101f35;
+ display:flex;gap:9px;
+}
+input{
+ flex:1;min-width:0;padding:14px;
+ border-radius:14px;border:1px solid #38516d;
+ background:#07111f;color:white;font-size:16px;
+}
+button{
+ border:0;border-radius:13px;padding:12px;
+ background:#087fbd;color:white;font-size:17px;
+}
+#send{padding:12px 18px}
+.mic{background:#7356e9}
+footer{
+ text-align:center;color:#8194ac;
+ font-size:11px;padding:20px 0 100px
+}
+</style>
+</head>
+<body>
+<header>
+ <div class="logo">🤖</div>
+ <div>
+  <h2>Rana AI</h2>
+  <p>তোমার ব্যক্তিগত AI সহকারী</p>
+ </div>
+</header>
+<main>
+ <section class="welcome">
+  <div style="font-size:55px">✨</div>
+  <h1>হ্যালো! আমি Rana AI</h1>
+  <p>তোমাকে কীভাবে সাহায্য করতে পারি?<br>
+  প্রশ্ন করো, আমি সাহায্য করার চেষ্টা করব।</p>
+ </section>
+ <section class="chat" id="chat">
+  <div class="message bot">
+   স্বাগতম! আমি Rana AI। নিচে তোমার প্রশ্ন লেখো।
+  </div>
+ </section>
+</main>
+<div class="controls">
+ <input id="msg" placeholder="এখানে প্রশ্ন লেখো...">
+ <button class="mic" onclick="voice()">🎤</button>
+ <button id="send" onclick="send()">➤</button>
+</div>
+<footer>Rana AI • Version 1.0</footer>
+<script>
+function send(){
+ let input=document.getElementById('msg');
+ let value=input.value.trim();
+ if(!value)return;
+ let chat=document.getElementById('chat');
+ chat.innerHTML+=
+ '<div class="message user"></div>';
+ chat.lastElementChild.textContent=value;
+ chat.innerHTML+=
+ '<div class="message bot">তোমার প্রশ্ন পেয়েছি! আসল AI উত্তর দেওয়ার সুবিধা পরবর্তী ধাপে সংযুক্ত করা হবে।</div>';
+ input.value='';
+ window.scrollTo(0,document.body.scrollHeight);
+}
+function voice(){
+ const Speech=window.SpeechRecognition||
+ window.webkitSpeechRecognition;
+ if(!Speech){
+  alert('এই ব্রাউজারে ভয়েস সুবিধা পাওয়া যাচ্ছে না।');
+  return;
+ }
+ const recognition=new Speech();
+ recognition.lang='bn-BD';
+ recognition.start();
+ recognition.onresult=function(e){
+ document.getElementById('msg').value=
+ e.results[0][0].transcript;
+ };
+}
+document.getElementById('msg').addEventListener(
+ 'keydown',function(e){
+ if(e.key==='Enter')send();
+ });
+</script>
+</body>
+</html>
