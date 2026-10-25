@@ -11,7 +11,7 @@
 এই সেটআপে Cloudflare Pages-এ GitHub repository deploy করতে হবে। Cloudflare/Gemini account, API key এবং যেকোনো billing বা usage settings একজন অভিভাবক/প্রাপ্তবয়স্কের সহায়তায় সেট আপ করুন। কোনো API key চ্যাটে বা GitHub-এ পাঠাবেন না।
 
 1. Cloudflare Pages-এ একটি project তৈরি করে GitHub repository `hasu5284-collab/Rana-AI` সংযুক্ত করুন।
-2. Framework preset: None; Build command ফাঁকা; Build output directory `/` দিন, তারপর deploy করুন।
+2. Framework preset: None; Build command ফাঁকা; Build output directory `.` দিন, তারপর deploy করুন।
 3. Deploy শেষ হলে Pages project → Settings → Variables and Secrets → Add-এ যান।
 4. Secret হিসেবে নাম দিন `GEMINI_API_KEY`; Google AI Studio থেকে পাওয়া key value সেখানে দিন; Encrypt/Secret নির্বাচন করে Save করুন।
 5. নতুন deployment দিন। এরপর site খুলে একটি সাধারণ প্রশ্ন পাঠিয়ে পরীক্ষা করুন।
