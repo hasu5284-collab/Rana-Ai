@@ -18,6 +18,7 @@ import java.util.Locale
 class MainActivity : Activity(), TextToSpeech.OnInitListener {
     private lateinit var messages: LinearLayout
     private lateinit var input: EditText
+    private lateinit var scroll: ScrollView
     private var tts: TextToSpeech? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,9 +51,7 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
             setPadding(14, 14, 14, 14)
             setBackgroundColor(Color.rgb(20, 35, 60))
         }
-        val scroll = ScrollView(this).apply {
-            addView(messages)
-        }
+        scroll = ScrollView(this).apply { addView(messages) }
         val inputRow = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
@@ -77,7 +76,7 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
         root.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
         root.addView(inputRow)
         setContentView(root)
-        addMessage("Rana AI", "আসসালামু আলাইকুম! আমি Rana AI। লিখে অথবা মাইক্রোফোন চেপে কথা বলুন।")
+        addMessage("Rana AI", "আসসালামু আলাইকুম! আমি Rana AI। লিখে অথবা মাইক্রোফোন চেপে কথা বলুন।\n\nআপনি আমাকে সাধারণ প্রশ্ন করতে পারেন।")
         send.setOnClickListener { submitText() }
         input.setOnEditorActionListener { _, _, _ -> submitText(); true }
         mic.setOnClickListener { startVoiceInput() }
@@ -94,6 +93,37 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
         val lp = LinearLayout.LayoutParams(-1, ViewGroup.LayoutParams.WRAP_CONTENT)
         lp.bottomMargin = 12
         messages.addView(view, lp)
+        scroll.post { scroll.fullScroll(ScrollView.FOCUS_DOWN) }
+    }
+
+    private fun makeReply(original: String): String {
+        val q = original.lowercase(Locale.ROOT)
+            .replace(" ", "")
+            .replace("।", "")
+            .replace("?", "")
+            .replace("!", "")
+            .replace(".", "")
+
+        return when {
+            listOf("হ্যালো", "হালো", "হেলো", "হাই", "hello", "hi", "আসসালামু").any { q.contains(it) } ->
+                "ওয়ালাইকুম আসসালাম! 😊 কেমন আছেন? কী বিষয়ে সাহায্য লাগবে?"
+            listOf("তোমারনাম", "তোমাকিকলে", "নামকি", "তুমিকে", "whoareyou").any { q.contains(it) } ->
+                "আমার নাম Rana AI। আমি আপনার বাংলা ভাষার সহকারী।"
+            listOf("কিকরবো", "কিকরব", "কিকরবেতাহলে", "এখনকিকরবো").any { q.contains(it) } ->
+                "আপনি যে বিষয়ে সাহায্য চান, সেটি সহজ করে লিখুন। যেমন: হিসাব, পড়াশোনা, ফোনের সমস্যা, কাজ বা সাধারণ তথ্য।"
+            listOf("সাহায্য", "help", "কিপার", "কিকরতে").any { q.contains(it) } ->
+                "আমি সাধারণ প্রশ্নের উত্তর, সহজ হিসাব, বাংলা লেখা ও ফোনের সাধারণ সমস্যা বুঝতে সাহায্য করতে পারি। আপনার প্রশ্নটি লিখুন।"
+            listOf("ধন্যবাদ", "থ্যাংক", "thanks").any { q.contains(it) } ->
+                "আপনাকে স্বাগতম! আর কিছু জানতে চাইলে বলুন।"
+            listOf("সময়", "কয়টাবাজে", "time").any { q.contains(it) } ->
+                "বর্তমান সময় জানতে আপনার ফোনের ওপরের স্ট্যাটাস বার বা Clock অ্যাপ দেখুন।"
+            listOf("যোগ", "বিয়োগ", "গুণ", "ভাগ", "হিসাব", "ক্যালকুলেটর").any { q.contains(it) } ->
+                "হিসাবটি সংখ্যাসহ লিখুন। যেমন: ১২৫০ টাকা ৫ জনে ভাগ করলে কত?"
+            listOf("তুমি কি", "পারবে").any { q.contains(it) } ->
+                "আমি এই অ্যাপের মধ্যে থাকা সাধারণ সহায়তাগুলো দিতে পারি। তবে এখনো ইন্টারনেটভিত্তিক পূর্ণ AI-এর সঙ্গে যুক্ত নই।"
+            else ->
+                "আপনার প্রশ্নটি পেয়েছি: “$original”। এই বিনামূল্যের সংস্করণে আমার উত্তর দেওয়ার ক্ষমতা সীমিত, কারণ এখনো কোনো AI সার্ভারের সঙ্গে সংযোগ নেই। প্রশ্নটি আরেকটু সহজ করে বা বিস্তারিত লিখে দেখুন।"
+        }
     }
 
     private fun submitText() {
@@ -101,12 +131,7 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
         if (text.isEmpty()) return
         input.setText("")
         addMessage("আপনি", text)
-        val reply = when {
-            text.contains("হ্যালো") || text.contains("হাই") -> "হ্যালো! কীভাবে সাহায্য করতে পারি?"
-            text.contains("সময়") -> "আপনার ফোনের ঘড়িতে বর্তমান সময় দেখতে পারবেন।"
-            text.contains("নাম") -> "আমার নাম Rana AI।"
-            else -> "আপনার কথা বুঝেছি: “$text”। পূর্ণ AI উত্তর দিতে নিরাপদ AI সার্ভার/API সংযোগ পরের ধাপে যোগ করতে হবে।"
-        }
+        val reply = makeReply(text)
         addMessage("Rana AI", reply)
         tts?.speak(reply, TextToSpeech.QUEUE_FLUSH, null, "rana_reply")
     }
@@ -125,7 +150,9 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
             putExtra(RecognizerIntent.EXTRA_LANGUAGE, "bn-BD")
             putExtra(RecognizerIntent.EXTRA_PROMPT, "বলুন…")
         }
-        try { startActivityForResult(intent, 42) } catch (_: Exception) {
+        try {
+            startActivityForResult(intent, 42)
+        } catch (_: Exception) {
             addMessage("Rana AI", "ভয়েস ইনপুট চালু করা যায়নি।")
         }
     }
@@ -135,12 +162,20 @@ class MainActivity : Activity(), TextToSpeech.OnInitListener {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == 42 && resultCode == RESULT_OK) {
             val spoken = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()
-            if (!spoken.isNullOrBlank()) { input.setText(spoken); submitText() }
+            if (!spoken.isNullOrBlank()) {
+                input.setText(spoken)
+                submitText()
+            }
         }
     }
 
     override fun onInit(status: Int) {
-        if (status == TextToSpeech.SUCCESS) tts?.language = Locale("bn", "BD")
+        if (status == TextToSpeech.SUCCESS) {
+            val result = tts?.setLanguage(Locale("bn", "BD"))
+            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                tts?.language = Locale.getDefault()
+            }
+        }
     }
 
     override fun onDestroy() {
