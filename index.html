@@ -89,38 +89,59 @@ footer{
 </div>
 <footer>Rana AI • Version 1.0</footer>
 <script>
-function send(){
- let input=document.getElementById('msg');
- let value=input.value.trim();
- if(!value)return;
- let chat=document.getElementById('chat');
- chat.innerHTML+=
- '<div class="message user"></div>';
- chat.lastElementChild.textContent=value;
- chat.innerHTML+=
- '<div class="message bot">তোমার প্রশ্ন পেয়েছি! আসল AI উত্তর দেওয়ার সুবিধা পরবর্তী ধাপে সংযুক্ত করা হবে।</div>';
- input.value='';
+const history=[];
+let busy=false;
+function addMessage(text,who){
+ const node=document.createElement('div');
+ node.className='message '+who;
+ node.textContent=text;
+ document.getElementById('chat').appendChild(node);
  window.scrollTo(0,document.body.scrollHeight);
 }
-function voice(){
- const Speech=window.SpeechRecognition||
- window.webkitSpeechRecognition;
- if(!Speech){
-  alert('এই ব্রাউজারে ভয়েস সুবিধা পাওয়া যাচ্ছে না।');
-  return;
+async function send(){
+ const input=document.getElementById('msg');
+ const value=input.value.trim();
+ if(!value||busy)return;
+ input.value='';
+ addMessage(value,'user');
+ busy=true;
+ const sendButton=document.getElementById('send');
+ sendButton.disabled=true;
+ const wait=document.createElement('div');
+ wait.className='message bot';
+ wait.textContent='Rana AI উত্তর তৈরি করছে...';
+ document.getElementById('chat').appendChild(wait);
+ try{
+  const response=await fetch('/api/chat',{
+   method:'POST',
+   headers:{'Content-Type':'application/json'},
+   body:JSON.stringify({message:value,history})
+  });
+  const data=await response.json();
+  wait.remove();
+  if(!response.ok)throw new Error(data.error||'উত্তর পাওয়া যায়নি।');
+  addMessage(data.answer,'bot');
+  history.push({role:'user',text:value},{role:'model',text:data.answer});
+  if(history.length>12)history.splice(0,history.length-12);
+ }catch(error){
+  wait.remove();
+  addMessage(error.message||'সংযোগে সমস্যা হয়েছে। পরে আবার চেষ্টা করো।','bot');
+ }finally{
+  busy=false;
+  sendButton.disabled=false;
+  input.focus();
  }
+}
+function voice(){
+ const Speech=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!Speech){alert('এই ব্রাউজারে ভয়েস সুবিধা পাওয়া যাচ্ছে না।');return;}
  const recognition=new Speech();
  recognition.lang='bn-BD';
+ recognition.onresult=function(e){document.getElementById('msg').value=e.results[0][0].transcript;};
+ recognition.onerror=function(){addMessage('ভয়েস শুনতে সমস্যা হয়েছে। আবার চেষ্টা করো।','bot');};
  recognition.start();
- recognition.onresult=function(e){
- document.getElementById('msg').value=
- e.results[0][0].transcript;
- };
 }
-document.getElementById('msg').addEventListener(
- 'keydown',function(e){
- if(e.key==='Enter')send();
- });
+document.getElementById('msg').addEventListener('keydown',function(e){if(e.key==='Enter')send();});
 </script>
 </body>
 </html>
